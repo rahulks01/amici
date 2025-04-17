@@ -1,3 +1,4 @@
+import NewDM from "./components/new-dm";
 import ProfileInfo from "./components/profile-info";
 
 const ContactsContainer = () => {
@@ -9,6 +10,7 @@ const ContactsContainer = () => {
       <div className="my-5">
         <div className="flex items-center justify-between pr-10">
           <Title text="Direct Messages" />
+          <NewDM />
         </div>
       </div>
       <div className="my-5">
@@ -38,17 +40,17 @@ const Logo = () => {
         <path
           d="M55.5 0H77.5L58.5 32H36.5L55.5 0Z"
           className="ccustom"
-          fill="#8338ec"
+          fill="#6366f1"
         ></path>{" "}
         <path
           d="M35.5 0H51.5L32.5 32H16.5L35.5 0Z"
           className="ccompli1"
-          fill="#975aed"
+          fill="#4f46e5"
         ></path>{" "}
         <path
           d="M19.5 0H31.5L12.5 32H0.5L19.5 0Z"
           className="ccompli2"
-          fill="#a16ee8"
+          fill="#4338ca"
         ></path>{" "}
       </svg>
       <span className="text-3xl font-semibold ">Amici</span>
