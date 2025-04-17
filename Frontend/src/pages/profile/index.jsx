@@ -2,8 +2,7 @@ import { useAppStore } from "@/store";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoArrowBack } from "react-icons/io5";
-import { Avatar } from "@radix-ui/react-avatar";
-import { AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { colors, getColor } from "@/lib/utils";
 import { FaTrash, FaPlus } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
@@ -213,7 +212,7 @@ const Profile = () => {
         </div>
         <div className="w-full">
           <Button
-            className="h-16 w-full bg-purple-700 hover:bg-purple-900 transition-all duration-300"
+            className="h-16 w-full bg-purple-700 text-md text-white hover:bg-purple-900 transition-all duration-300"
             onClick={saveChanges}
           >
             Save Changes

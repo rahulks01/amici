@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Background from "../../assets/login2.png";
-import Victory from "../../assets/victory.svg";
+import Background from "@/assets/login2.png";
+import Victory from "@/assets/victory.svg";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
