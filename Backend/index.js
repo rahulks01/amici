@@ -4,6 +4,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import authRoutes from "./routes/AuthRoute.js";
+import contactRoutes from "./routes/ContactRoutes.js";
+import setupSocket from "./socket.js";
 
 dotenv.config();
 
@@ -25,10 +27,13 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/contacts", contactRoutes);
 
 const server = app.listen(port, () => {
   console.log(`Server is listening at http://localhost:${port}`);
 });
+
+setupSocket(server);
 
 mongoose
   .connect(databaseURL)
