@@ -9,6 +9,7 @@ import { apiClient } from "@/lib/api-client";
 import { LOGIN_ROUTE, SIGNUP_ROUTE } from "@/utils/constants";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -16,6 +17,9 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validateLogin = () => {
     if (!email.length) {
@@ -56,7 +60,7 @@ const Auth = () => {
       );
 
       if (response.data.user.id) {
-        setUserInfo(response.data.user)
+        setUserInfo(response.data.user);
         if (response.data.user.profileSetup) {
           navigate("/chat");
         } else {
@@ -77,7 +81,7 @@ const Auth = () => {
       );
 
       if (response.status === 201) {
-        setUserInfo(response.data.user)
+        setUserInfo(response.data.user);
         navigate("/profile");
       }
 
@@ -103,13 +107,13 @@ const Auth = () => {
               <TabsList className="flex items-center justify-center w-full">
                 <TabsTrigger
                   value="login"
-                  className="data-[state=active]:bg-transparent text-black text-opacity-90 border-b-2 rounded-none w-full data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-purple-500 p-3 transition-all duration-300"
+                  className="data-[state=active]:bg-transparent text-black text-opacity-90 border-b-2 rounded-none w-full data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-indigo-500 p-3 transition-all duration-300"
                 >
                   Login
                 </TabsTrigger>
                 <TabsTrigger
                   value="signup"
-                  className="data-[state=active]:bg-transparent text-black text-opacity-90 border-b-2 rounded-none w-full data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-purple-500 p-3 transition-all duration-300"
+                  className="data-[state=active]:bg-transparent text-black text-opacity-90 border-b-2 rounded-none w-full data-[state=active]:text-black data-[state=active]:font-semibold data-[state=active]:border-b-indigo-500 p-3 transition-all duration-300"
                 >
                   Signup
                 </TabsTrigger>
@@ -122,13 +126,26 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                <Input
-                  placeholder="Password"
-                  type="password"
-                  className="rounded-full p-6"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="Password"
+                    type={showLoginPassword ? "text" : "password"}
+                    className="rounded-full p-6 pr-12"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 focus:outline-none"
+                  >
+                    {showLoginPassword ? (
+                      <AiOutlineEyeInvisible size={20} />
+                    ) : (
+                      <AiOutlineEye size={20} />
+                    )}
+                  </button>
+                </div>
                 <Button
                   className="rounded-full p-6 bg-black text-white"
                   onClick={handleLogin}
@@ -144,20 +161,46 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                <Input
-                  placeholder="Password"
-                  type="password"
-                  className="rounded-full p-6"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <Input
-                  placeholder="Confirm Password"
-                  type="password"
-                  className="rounded-full p-6"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="Password"
+                    type={showSignupPassword ? "text" : "password"}
+                    className="rounded-full p-6 pr-12"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignupPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 focus:outline-none"
+                  >
+                    {showSignupPassword ? (
+                      <AiOutlineEyeInvisible size={20} />
+                    ) : (
+                      <AiOutlineEye size={20} />
+                    )}
+                  </button>
+                </div>
+                <div className="relative">
+                  <Input
+                    placeholder="Confirm Password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    className="rounded-full p-6 pr-12"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 focus:outline-none"
+                  >
+                    {showConfirmPassword ? (
+                      <AiOutlineEyeInvisible size={20} />
+                    ) : (
+                      <AiOutlineEye size={20} />
+                    )}
+                  </button>
+                </div>
                 <Button
                   className="rounded-full p-6 bg-black text-white"
                   onClick={handleSignup}

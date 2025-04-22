@@ -105,7 +105,6 @@ const MessageContainer = () => {
   const downloadFile = async (url) => {
     setIsDownloading(true);
     setFileDownloadProgress(0);
-    set;
     const response = await apiClient.get(`${HOST}/${url}`, {
       responseType: "blob",
       onDownloadProgress: (progressEvent) => {
@@ -150,9 +149,7 @@ const MessageContainer = () => {
             message.sender !== selectedChatData._id
               ? "bg-indigo-500 text-white border-white/50"
               : "bg-[#2a2b33]/5 text-white/80 border-[#fff]/50"
-          }border inline-block ${
-            checkIfImage(message.fileUrl) ? "p-1" : "p-2"
-          } rounded-md my-1 max-w-[50%] break-words`}
+          } border inline-block p-2 rounded-md my-1 max-w-[50%] break-words`}
         >
           {checkIfImage(message.fileUrl) ? (
             <div
@@ -215,10 +212,8 @@ const MessageContainer = () => {
             className={`${
               message.sender._id === userInfo.id
                 ? "bg-indigo-500 text-white border-white/50"
-                : "bg-[#2a2b33]/5 text-white/80 border-[#fff]/50"
-            }border inline-block ${
-              checkIfImage(message.fileUrl) ? "p-1" : "p-2"
-            } rounded-md my-1 max-w-[50%] break-words`}
+                : "bg-[#2a2b33]/5 text-white/80 border-white/50"
+            } border inline-block p-2 rounded-md my-1 max-w-[50%] break-words`}
           >
             {checkIfImage(message.fileUrl) ? (
               <div
@@ -277,7 +272,7 @@ const MessageContainer = () => {
             </span>
           </div>
         ) : (
-          <div className="text-xs text-white/6 mt-1">
+          <div className="text-xs text-white/60 mt-1">
             {moment(message.timestamp).format("LT")}
           </div>
         )}

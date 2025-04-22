@@ -35,7 +35,7 @@ const Chat = () => {
       {isDownloading && (
         <div className="h-[100vh] w-[100vw] fixed top-0 z-10 left-0 bg-black/80 flex items-center justify-center flex-col gap-5 backdrop-blur-lg">
           <h5 className="text-5xl animate-pulse">Downloading File</h5>
-          {fileDownloadProgressmessa}%
+          {fileDownloadProgress}%
         </div>
       )}
 

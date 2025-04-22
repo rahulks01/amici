@@ -138,7 +138,6 @@ const NewDM = () => {
               />
               <div className="text-opacity-80 text-white flex flex-col gap-5 items-center mt-5 lg:text-2xl text-xl transition-all duration-300 text-center">
                 <h3 className="poppins-medium">
-                  Hi<span className="text-indigo-500">! </span>
                   Search new <span className="text-indigo-500">Contact.</span>
                 </h3>
               </div>

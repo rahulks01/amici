@@ -35,7 +35,7 @@ const ProfileInfo = () => {
   };
 
   return (
-    <div className="absolute bottom-0 h-16 flex items-center justify-between px-10 w-full bg-[#2a2b33]">
+    <div className="absolute bottom-0 h-[70px] flex items-center justify-between px-5 w-full bg-[#2a2b33]">
       <div className="flex gap-3 items-center justify-center">
         <div className="w-12 h-12 relative">
           <Avatar className="h-12 w-12 rounded-full overflow-hidden">
@@ -64,12 +64,12 @@ const ProfileInfo = () => {
             : ""}
         </div>
       </div>
-      <div className="flex gap-5">
+      <div className="flex gap-5 items-center">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
               <FiEdit2
-                className="text-indigo-500"
+                className="text-indigo-500 h-5 w-5"
                 onClick={() => navigate("/profile")}
               />
             </TooltipTrigger>
@@ -81,7 +81,7 @@ const ProfileInfo = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <IoPowerSharp className="text-red-500" onClick={logout} />
+              <IoPowerSharp className="text-red-500 h-5 w-5" onClick={logout} />
             </TooltipTrigger>
             <TooltipContent className="bg-[#1c1b1e] border-none text-white">
               Logout
