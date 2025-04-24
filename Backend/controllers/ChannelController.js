@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Channel from "../models/ChannelModel.js";
 import User from "../models/UserModel.js";
-import { response } from "express";
 
 export const createChannel = async (req, res, next) => {
   try {

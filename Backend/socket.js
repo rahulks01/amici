@@ -1,6 +1,7 @@
 import { Server as SocketIOServer } from "socket.io";
 import Message from "./models/MessagesModel.js";
 import Channel from "./models/ChannelModel.js";
+import redisClient from "./redisClient.js";
 
 const setupSocket = (server) => {
   const io = new SocketIOServer(server, {
@@ -65,21 +66,41 @@ const setupSocket = (server) => {
 
     const finalData = { ...messageData._doc, channelId: channel._id };
 
-    if (channel && channel.members) {
-      channel.members.forEach((member) => {
-        const memberSocketId = userSocketMap.get(member._id.toString());
+    // Publish the channel message to Redis
+    await redisClient.publish(
+      `channel:${channelId}`,
+      JSON.stringify(finalData)
+    );
 
-        if (memberSocketId) {
-          io.to(memberSocketId).emit("recieve-channel-message", finalData);
-        }
-      });
-      const adminSocketId = userSocketMap.get(channel.admin._id.toString());
+    /////////////////////////////////////
+    ///////// LOCAL SOCKET IMPLEMENTATION OF CHANNEL MESSAGES
+    ////////////////////////////////////
+    // if (channel && channel.members) {
+    //   channel.members.forEach((member) => {
+    //     const memberSocketId = userSocketMap.get(member._id.toString());
 
-      if (adminSocketId) {
-        io.to(adminSocketId).emit("recieve-channel-message", finalData);
-      }
-    }
+    //     if (memberSocketId) {
+    //       io.to(memberSocketId).emit("recieve-channel-message", finalData);
+    //     }
+    //   });
+    //   const adminSocketId = userSocketMap.get(channel.admin._id.toString());
+
+    //   if (adminSocketId) {
+    //     io.to(adminSocketId).emit("recieve-channel-message", finalData);
+    //   }
+    // }
   };
+
+  const createRedisSubscriber = async () => {
+    const subscriber = redisClient.duplicate();
+    await subscriber.connect();
+    await subscriber.pSubscribe("channel:*", (message, channel) => {
+      const channelId = channel.split(":")[1];
+      io.to(channelId).emit("recieve-channel-message", JSON.parse(message));
+    });
+  };
+
+  createRedisSubscriber();
 
   io.on("connection", (socket) => {
     const userId = socket.handshake.query.userId;
@@ -90,6 +111,10 @@ const setupSocket = (server) => {
     } else {
       console.log("User ID not provided during connection.");
     }
+
+    socket.on("joinChannel", (channelId) => {
+      socket.join(channelId);
+    });
 
     socket.on("sendMessage", sendMessage);
     socket.on("send-channel-message", sentChannelMessage);
