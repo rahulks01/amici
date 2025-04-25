@@ -10,6 +10,7 @@ import { LOGIN_ROUTE, SIGNUP_ROUTE } from "@/utils/constants";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import OTPModal from "./OTPModal";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ const Auth = () => {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [isLoginFlow, setIsLoginFlow] = useState(true);
 
   const validateLogin = () => {
     if (!email.length) {
@@ -27,10 +30,9 @@ const Auth = () => {
       return false;
     }
     if (!password.length) {
-      toast.error("Password is requird");
+      toast.error("Password is required");
       return false;
     }
-
     return true;
   };
 
@@ -40,14 +42,13 @@ const Auth = () => {
       return false;
     }
     if (!password.length) {
-      toast.error("Password is requird");
+      toast.error("Password is required");
       return false;
     }
     if (password !== confirmPassword) {
       toast.error("Password and confirm password should be same");
       return false;
     }
-
     return true;
   };
 
@@ -58,16 +59,19 @@ const Auth = () => {
         { email, password },
         { withCredentials: true }
       );
-
-      if (response.data.user.id) {
+      if (response.data.user && response.data.user.otpVerified === false) {
+        toast.info("OTP not verified. Please check your email for the OTP.");
+        setIsLoginFlow(true);
+        setShowOTPModal(true);
+      } else if (response.data.user && response.data.user.id) {
         setUserInfo(response.data.user);
+        toast.success("Login successful");
         if (response.data.user.profileSetup) {
           navigate("/chat");
         } else {
           navigate("/profile");
         }
       }
-
       console.log(response);
     }
   };
@@ -79,12 +83,11 @@ const Auth = () => {
         { email, password },
         { withCredentials: true }
       );
-
       if (response.status === 201) {
-        setUserInfo(response.data.user);
-        navigate("/profile");
+        toast.success("OTP sent to your email. Please verify before proceeding.");
+        setIsLoginFlow(false);
+        setShowOTPModal(true);
       }
-
       console.log(response);
     }
   };
@@ -215,6 +218,25 @@ const Auth = () => {
           <img src={Background} alt="Background login" className="h-[550px]" />
         </div>
       </div>
+      <OTPModal
+        open={showOTPModal}
+        setOpen={(open) => {
+          if (!open) setShowOTPModal(false);
+        }}
+        onSuccess={(verifiedUser) => {
+          setUserInfo(verifiedUser);
+          toast.success("OTP verified successfully!");
+          if (isLoginFlow) {
+            if (verifiedUser.profileSetup) {
+              navigate("/chat");
+            } else {
+              navigate("/profile");
+            }
+          } else {
+            navigate("/profile");
+          }
+        }}
+      />
     </div>
   );
 };
