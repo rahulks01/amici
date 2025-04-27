@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   Dialog,
@@ -12,19 +14,47 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 import { useAppStore } from "@/store";
-import { useNavigate } from "react-router-dom";
-import { VERIFY_OTP } from "@/utils/constants";
+import { RESEND_OTP, VERIFY_OTP } from "@/utils/constants";
+import { Loader2 } from "lucide-react";
 
 const OTPModal = ({ open, setOpen, onSuccess }) => {
   const [otp, setOtp] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const { setUserInfo } = useAppStore();
-  const navigate = useNavigate();
+
+  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+
+  const handleDigitChange = (index, value) => {
+    if (value.length > 1) return;
+
+    const newOtpDigits = [...otpDigits];
+    newOtpDigits[index] = value;
+    setOtpDigits(newOtpDigits);
+
+    setOtp(newOtpDigits.join(""));
+
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-input-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-input-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
 
   const handleVerify = async () => {
     if (otp.trim().length !== 6) {
       toast.error("Please enter a valid 6-digit OTP");
       return;
     }
+
+    setIsVerifying(true);
+
     try {
       const response = await apiClient.post(
         VERIFY_OTP,
@@ -36,39 +66,102 @@ const OTPModal = ({ open, setOpen, onSuccess }) => {
         setUserInfo(response.data.user);
         toast.success("OTP verified successfully");
         setOtp("");
+        setOtpDigits(["", "", "", "", "", ""]);
         setOpen(false);
         onSuccess(response.data.user);
       }
     } catch (error) {
       toast.error("Invalid or expired OTP. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setIsResending(true);
+    try {
+      const response = await apiClient.post(
+        RESEND_OTP,
+        {},
+        { withCredentials: true }
+      );
+      if (response.status === 200) {
+        toast.success("OTP resent successfully.");
+        setOtp("");
+        setOtpDigits(["", "", "", "", "", ""]);
+      }
+    } catch (error) {
+      toast.error("Failed to resend OTP. Please try again.");
+    } finally {
+      setIsResending(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="bg-[#1c1d25] text-white rounded-lg p-6">
-        <DialogHeader>
-          <DialogTitle>Enter OTP</DialogTitle>
-          <DialogDescription>
-            Please enter the 6-digit OTP sent to your email to continue.
+      <DialogContent className="bg-white text-black rounded-xl p-6 border border-gray-700 shadow-xl">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-2xl font-bold text-center">
+            Verification Code
+          </DialogTitle>
+          <DialogDescription className="text-gray-700 text-center">
+            Please enter the 6-digit code sent to your email to continue
           </DialogDescription>
         </DialogHeader>
-        <div className="mt-4">
-          <Input
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="mb-4"
-          />
-          <Button onClick={handleVerify} className="w-full">
-            Verify OTP
+
+        <div className="mt-6 space-y-6">
+          <div className="flex justify-center gap-2">
+            {otpDigits.map((digit, index) => (
+              <Input
+                key={index}
+                id={`otp-input-${index}`}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleDigitChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className="w-12 h-12 text-center text-xl font-bold bg-white border-gray-600 focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            ))}
+          </div>
+
+          <Button
+            onClick={handleVerify}
+            className="w-full bg-indigo-500 hover:bg-indigo-700 text-white cursor-pointer py-2 h-12 rounded-lg transition-all duration-200"
+            disabled={isVerifying || otp.length !== 6}
+          >
+            {isVerifying ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              "Verify Code"
+            )}
           </Button>
+
+          <div className="text-center text-sm text-gray-700">
+            Didn't receive the code?{" "}
+            <button
+              onClick={handleResend}
+              className="text-indigo-500 hover:text-indigo-700 font-medium cursor-pointer"
+              disabled={isResending}
+            >
+              {isResending ? "Resending..." : "Resend"}
+            </button>
+          </div>
+
+          <DialogClose asChild>
+            <Button
+              variant="ghost"
+              className="w-full border cursor-pointer hover:bg-black text-gray-700 hover:text-white"
+            >
+              Cancel
+            </Button>
+          </DialogClose>
         </div>
-        <DialogClose asChild>
-          <Button variant="outline" className="mt-4 w-full">
-            Cancel
-          </Button>
-        </DialogClose>
       </DialogContent>
     </Dialog>
   );

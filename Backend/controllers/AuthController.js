@@ -2,7 +2,7 @@ import { compare } from "bcrypt";
 import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import { renameSync, unlinkSync } from "fs";
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
 
 const maxAge = 3 * 24 * 60 * 60 * 1000;
 
@@ -45,7 +45,7 @@ export const signup = async (req, res, next) => {
     }
     const user = await User.create({ email, password });
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  
+
     user.otp = otp;
     user.otpExpires = new Date(Date.now() + 2 * 60 * 1000);
     await user.save();
@@ -261,6 +261,31 @@ export const logout = async (req, res, next) => {
     res.cookie("jwt", "", { maxAge: 1, secure: true, sameSite: "None" });
 
     return res.status(200).send("Logout Successful");
+  } catch (error) {
+    console.log({ error });
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+export const resendOTP = async (req, res, next) => {
+  try {
+    const userId = req.cookies.otpUser;
+    if (!userId) {
+      return res.status(400).send("OTP verification session expired.");
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found.");
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 2 * 60 * 1000);
+    await user.save();
+
+    await sendOTPEmail(user.email, otp);
+
+    return res.status(200).json({ message: "OTP resent successfully." });
   } catch (error) {
     console.log({ error });
     return res.status(500).send("Internal Server Error");
