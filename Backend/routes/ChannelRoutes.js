@@ -4,6 +4,12 @@ import {
   createChannel,
   getChannelMessages,
   getUserChannel,
+  getChannelMembers,
+  leaveChannel,
+  deleteChannel,
+  removeMember,
+  addMembersToChannel,
+  searchUsersForChannel,
 } from "../controllers/ChannelController.js";
 
 const channelRoutes = Router();
@@ -15,5 +21,15 @@ channelRoutes.get(
   verifyToken,
   getChannelMessages
 );
+channelRoutes.get(
+  "/get-channel-members/:channelId",
+  verifyToken,
+  getChannelMembers
+);
+channelRoutes.post("/leave-channel/:channelId", verifyToken, leaveChannel);
+channelRoutes.delete("/delete-channel/:channelId", verifyToken, deleteChannel);
+channelRoutes.post("/remove-member", verifyToken, removeMember);
+channelRoutes.post("/add-members", verifyToken, addMembersToChannel);
+channelRoutes.get("/search-users", verifyToken, searchUsersForChannel);
 
 export default channelRoutes;
