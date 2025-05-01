@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import authRoutes from "./routes/AuthRoute.js";
 import contactRoutes from "./routes/ContactRoutes.js";
-import setupSocket from "./socket.js";
+import setupSocket from "./utils/socket.js";
 import messageRoutes from "./routes/MessagesRoutes.js";
 import channelRoutes from "./routes/ChannelRoutes.js";
 

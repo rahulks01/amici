@@ -1,6 +1,6 @@
 import { Server as SocketIOServer } from "socket.io";
-import Message from "./models/MessagesModel.js";
-import Channel from "./models/ChannelModel.js";
+import Message from "../models/MessagesModel.js";
+import Channel from "../models/ChannelModel.js";
 import redisClient from "./redisClient.js";
 
 const setupSocket = (server) => {

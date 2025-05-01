@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Background from "@/assets/login2.png";
 import Victory from "@/assets/victory.svg";
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ const Auth = () => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
+  const [registrationId, setRegistrationId] = useState(""); // Added state for registrationId
   const [isLoginFlow, setIsLoginFlow] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
@@ -78,7 +79,6 @@ const Auth = () => {
             navigate("/profile");
           }
         }
-        console.log(response);
       } catch (error) {
         toast.error("Login failed. Please check your credentials.");
       } finally {
@@ -101,9 +101,10 @@ const Auth = () => {
             "OTP sent to your email. Please verify before proceeding."
           );
           setIsLoginFlow(false);
+          // Store the registrationId returned from the backend
+          setRegistrationId(response.data.registrationId);
           setShowOTPModal(true);
         }
-        console.log(response);
       } catch (error) {
         toast.error("Signup failed. Please try again.");
       } finally {
@@ -322,6 +323,7 @@ const Auth = () => {
             navigate("/profile");
           }
         }}
+        registrationId={registrationId}
       />
     </div>
   );

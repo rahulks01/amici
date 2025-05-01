@@ -17,12 +17,11 @@ import { useAppStore } from "@/store";
 import { RESEND_OTP, VERIFY_OTP } from "@/utils/constants";
 import { Loader2 } from "lucide-react";
 
-const OTPModal = ({ open, setOpen, onSuccess }) => {
+const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const { setUserInfo } = useAppStore();
-
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
 
   const handleDigitChange = (index, value) => {
@@ -58,7 +57,7 @@ const OTPModal = ({ open, setOpen, onSuccess }) => {
     try {
       const response = await apiClient.post(
         VERIFY_OTP,
-        { otp },
+        { otp, registrationId },
         { withCredentials: true }
       );
 
@@ -82,7 +81,7 @@ const OTPModal = ({ open, setOpen, onSuccess }) => {
     try {
       const response = await apiClient.post(
         RESEND_OTP,
-        {},
+        { userId },
         { withCredentials: true }
       );
       if (response.status === 200) {

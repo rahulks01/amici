@@ -2,9 +2,10 @@ import { compare } from "bcrypt";
 import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import { renameSync, unlinkSync } from "fs";
-import nodemailer from "nodemailer";
+import { sendEmail } from "../utils/sendEmail.js";
+import redisClient from "../utils/redisClient.js";
 
-const maxAge = 3 * 24 * 60 * 60 * 1000;
+const maxAge = 15 * 24 * 60 * 60 * 1000;
 
 const createToken = (email, userId) => {
   return jwt.sign({ email, userId }, process.env.JWT_SECRET, {
@@ -13,27 +14,17 @@ const createToken = (email, userId) => {
 };
 
 const sendOTPEmail = async (email, otp) => {
-  let transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-  await transporter.sendMail({
-    from: process.env.EMAIL_FROM,
+  await sendEmail({
     to: email,
     subject: "Welcome to Amici - Here's Your OTP",
     html: `
-    <p>Hi there,</p>
-    <p>Welcome to <strong>Amici</strong>! We're excited to have you on board.</p>
-    <p>Your One-Time Password (OTP) for sign-up is: <strong>${otp}</strong></p>
-    <p><em>This code is valid for <strong>2 minutes</strong> only, so please use it right away.</em></p>
-    <p>If you didn’t request this, you can safely ignore this message.</p>
-    <br>
-  `,
+      <p>Hi there,</p>
+      <p>Welcome to <strong>Amici</strong>! We're excited to have you on board.</p>
+      <p>Your One-Time Password (OTP) for sign-up is: <strong>${otp}</strong></p>
+      <p><em>This code is valid for <strong>2 minutes</strong> only, so please use it right away.</em></p>
+      <p>If you didn’t request this, you can safely ignore this message.</p>
+      <br>
+    `,
   });
 };
 
@@ -41,25 +32,28 @@ export const signup = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).send("Email and Password is required.");
+      return res.status(400).send("Email and Password are required.");
     }
-    const user = await User.create({ email, password });
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    user.otp = otp;
-    user.otpExpires = new Date(Date.now() + 2 * 60 * 1000);
-    await user.save();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 2 * 60 * 1000;
+
+    const tempRegId =
+      "pending:" +
+      Date.now().toString() +
+      Math.random().toString(36).substring(2, 8);
+
+    await redisClient.set(
+      `pendingUser:${tempRegId}`,
+      JSON.stringify({ email, password, otp, otpExpires }),
+      { EX: 120 }
+    );
 
     await sendOTPEmail(email, otp);
 
-    res.cookie("otpUser", user.id, {
-      maxAge: 10 * 60 * 1000,
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-    });
     return res.status(201).json({
       message: "OTP sent to your email. Please verify to proceed.",
+      registrationId: tempRegId, 
     });
   } catch (error) {
     console.log({ error });
@@ -69,29 +63,41 @@ export const signup = async (req, res, next) => {
 
 export const verifyOTP = async (req, res, next) => {
   try {
-    const { otp } = req.body;
-    const userId = req.cookies.otpUser;
-    if (!userId) {
+    const { otp, registrationId } = req.body;
+    if (!registrationId) {
+      return res
+        .status(400)
+        .send("Registration id is required for OTP verification.");
+    }
+
+    const cached = await redisClient.get(`pendingUser:${registrationId}`);
+    if (!cached) {
       return res.status(400).send("OTP verification session expired.");
     }
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
-      return res.status(400).send("Invalid or expired OTP.");
-    }
-    user.otpVerified = true;
+    const pendingUser = JSON.parse(cached);
 
+    if (pendingUser.otp !== otp) {
+      return res.status(400).send("Invalid OTP.");
+    }
+
+    const user = await User.create({
+      email: pendingUser.email,
+      password: pendingUser.password,
+    });
+
+    user.otpVerified = true;
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
+
+    await redisClient.del(`pendingUser:${registrationId}`);
 
     res.cookie("jwt", createToken(user.email, user.id), {
       maxAge,
       secure: true,
       sameSite: "None",
     });
+
     return res.status(200).json({
       user: {
         id: user.id,

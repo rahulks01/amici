@@ -13,7 +13,7 @@ import { IoPowerSharp } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
 
-const ProfileInfo = () => { 
+const ProfileInfo = () => {
   const { userInfo, setUserInfo } = useAppStore();
   const navigate = useNavigate();
 
