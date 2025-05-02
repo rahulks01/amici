@@ -11,24 +11,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { FaPlus } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
 import Lottie from "react-lottie";
 import { animationDefaultOptions, getColor } from "@/lib/utils";
 import { apiClient } from "@/lib/api-client";
-import {
-  HOST,
-  SEARCH_CONTACTS_ROUTES,
-  GET_ALL_CONTACTS_ROUTES,
-} from "@/utils/constants";
+import { HOST, SEARCH_CONTACTS_ROUTES } from "@/utils/constants";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { useAppStore } from "@/store";
 
 const NewDM = () => {
   const { setSelectedChatType, setSelectedChatData } = useAppStore();
-  const [openNewContactModal, setOpenNewContactModal] = useState(false);
+  const [openNewContactModel, setOpenNewContactModel] = useState(false);
   const [searchedContacts, setSearchedContacts] = useState([]);
 
   const searchContacts = async (searchTerm) => {
@@ -39,31 +36,20 @@ const NewDM = () => {
           { searchTerm },
           { withCredentials: true }
         );
+
         if (response.status === 200 && response.data.contacts) {
           setSearchedContacts(response.data.contacts);
         }
       } else {
-        const response = await apiClient.get(GET_ALL_CONTACTS_ROUTES, {
-          withCredentials: true,
-        });
-        if (response.status === 200 && response.data.contacts) {
-          setSearchedContacts(response.data.contacts);
-        }
+        setSearchedContacts([]);
       }
     } catch (err) {
       console.log({ err });
-      setSearchedContacts([]);
     }
   };
 
-  useEffect(() => {
-    if (openNewContactModal) {
-      searchContacts("");
-    }
-  }, [openNewContactModal]);
-
   const selectNewContact = (contact) => {
-    setOpenNewContactModal(false);
+    setOpenNewContactModel(false);
     setSelectedChatType("contact");
     setSelectedChatData(contact);
     setSearchedContacts([]);
@@ -76,7 +62,7 @@ const NewDM = () => {
           <TooltipTrigger>
             <FaPlus
               className="text-neutral-400 font-light text-opacity-90 text-start hoveer:text-neutral-100 cursor-pointer transition-all duration-300"
-              onClick={() => setOpenNewContactModal(true)}
+              onClick={() => setOpenNewContactModel(true)}
             />
           </TooltipTrigger>
           <TooltipContent className="bg-[#1c1b1e] border-none mb-2 p-3 text-white">
@@ -85,7 +71,7 @@ const NewDM = () => {
         </Tooltip>
       </TooltipProvider>
 
-      <Dialog open={openNewContactModal} onOpenChange={setOpenNewContactModal}>
+      <Dialog open={openNewContactModel} onOpenChange={setOpenNewContactModel}>
         <DialogContent className="bg-[#181920] border-none text-white w-[400px] h-[400px] flex flex-col">
           <DialogHeader>
             <DialogTitle>Please select a contact</DialogTitle>
@@ -104,7 +90,7 @@ const NewDM = () => {
               <div className="flex flex-col gap-5">
                 {searchedContacts.map((contact) => (
                   <div
-                    key={contact.value}
+                    key={contact._id}
                     className="flex gap-3 items-center cursor-pointer"
                     onClick={() => selectNewContact(contact)}
                   >
@@ -122,13 +108,19 @@ const NewDM = () => {
                               contact.color
                             )}`}
                           >
-                            {contact.label ? contact.label.charAt(0) : contact.email.charAt(0)}
+                            {contact.firstName
+                              ? contact.firstName.split("").shift()
+                              : contact.email.split("").shift()}
                           </div>
                         )}
                       </Avatar>
                     </div>
                     <div className="flex flex-col">
-                      <span>{contact.label ? contact.label : contact.email}</span>
+                      <span>
+                        {contact.firstName && contact.lastName
+                          ? `${contact.firstName} ${contact.lastName}`
+                          : contact.email}
+                      </span>
                       <span className="text-xs">{contact.email}</span>
                     </div>
                   </div>

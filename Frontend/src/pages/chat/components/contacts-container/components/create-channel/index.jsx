@@ -41,7 +41,7 @@ const CreateChannel = () => {
     };
 
     getData();
-  });
+  }, []);
 
   const createChannel = async () => {
     try {
