@@ -9,11 +9,6 @@ import setupSocket from "./utils/socket.js";
 import messageRoutes from "./routes/MessagesRoutes.js";
 import channelRoutes from "./routes/ChannelRoutes.js";
 
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean"; 
-
 dotenv.config();
 
 const app = express();
@@ -28,26 +23,11 @@ app.use(
   })
 );
 
-app.use(helmet());
-
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: "Too many requests from this IP, please try again in an hour!",
-});
-app.use("/api", limiter);
-
-app.use(express.json({ limit: "10kb" }));
-
-app.use(mongoSanitize());
-
-app.use(xss());
-
 app.use("/uploads/profiles", express.static("uploads/profiles"));
 app.use("/uploads/files", express.static("uploads/files"));
 
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);

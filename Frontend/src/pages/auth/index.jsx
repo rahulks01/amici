@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Background from "@/assets/login2.png";
 import Victory from "@/assets/victory.svg";
@@ -12,11 +12,65 @@ import { LOGIN_ROUTE, SIGNUP_ROUTE } from "@/utils/constants";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { CheckCircle2, XCircle } from "lucide-react";
 import OTPModal from "./OTPModal";
+
+const PasswordRequirements = ({ password, confirmPassword, visible }) => {
+  const requirements = [
+    {
+      id: "length",
+      label: "At least 8 characters",
+      isValid: password.length >= 8,
+    },
+    {
+      id: "uppercase",
+      label: "At least one uppercase letter",
+      isValid: /[A-Z]/.test(password),
+    },
+    {
+      id: "digit",
+      label: "At least one digit",
+      isValid: /\d/.test(password),
+    },
+    {
+      id: "character",
+      label: "At least one special character",
+      isValid: /[^A-Za-z0-9]/.test(password),
+    },
+    {
+      id: "match",
+      label: "Passwords match",
+      isValid: password === confirmPassword && password.length > 0,
+    },
+  ];
+
+  if (!visible) return null;
+
+  return (
+    <div className="absolute left-[-270px] top-0 bg-white p-4 rounded-lg shadow-md w-[250px] transition-all duration-300">
+      <h3 className="font-semibold mb-3 text-sm">Password Requirements:</h3>
+      <ul className="space-y-2">
+        {requirements.map((req) => (
+          <li key={req.id} className="flex items-center gap-2 text-sm">
+            {req.isValid ? (
+              <CheckCircle2 className="text-green-500 h-4 w-4" />
+            ) : (
+              <XCircle className="text-red-500 h-4 w-4" />
+            )}
+            <span className={req.isValid ? "text-green-700" : "text-red-700"}>
+              {req.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
 const Auth = () => {
   const navigate = useNavigate();
   const { setUserInfo } = useAppStore();
+  const [activeTab, setActiveTab] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,10 +78,32 @@ const Auth = () => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
-  const [registrationId, setRegistrationId] = useState(""); // Added state for registrationId
+  const [registrationId, setRegistrationId] = useState("");
   const [isLoginFlow, setIsLoginFlow] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isSigningUp, setIsSigningUp] = useState(false);
+
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] =
+    useState(false);
+  const [passwordMeetsRequirements, setPasswordMeetsRequirements] =
+    useState(false);
+
+  useEffect(() => {
+    const hasMinLength = password.length >= 8;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+    const passwordsMatch = password === confirmPassword && password.length > 0;
+
+    setPasswordMeetsRequirements(
+      hasMinLength &&
+        hasUppercase &&
+        hasDigit &&
+        hasSpecialChar &&
+        passwordsMatch
+    );
+  }, [password, confirmPassword]);
 
   const validateLogin = () => {
     if (!email.length) {
@@ -46,12 +122,8 @@ const Auth = () => {
       toast.error("Email is required");
       return false;
     }
-    if (!password.length) {
-      toast.error("Password is required");
-      return false;
-    }
-    if (password !== confirmPassword) {
-      toast.error("Password and confirm password should be same");
+    if (!passwordMeetsRequirements) {
+      toast.error("Password does not meet all requirements");
       return false;
     }
     return true;
@@ -101,7 +173,6 @@ const Auth = () => {
             "OTP sent to your email. Please verify before proceeding."
           );
           setIsLoginFlow(false);
-          // Store the registrationId returned from the backend
           setRegistrationId(response.data.registrationId);
           setShowOTPModal(true);
         }
@@ -113,8 +184,24 @@ const Auth = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (showOTPModal) return;
+
+    if (e.key === "Enter") {
+      if (activeTab === "login") {
+        handleLogin();
+      } else if (activeTab === "signup" && passwordMeetsRequirements) {
+        handleSignup();
+      }
+    }
+  };
+
   return (
-    <div className="h-[100vh] w-[100vw] flex items-center justify-center">
+    <div
+      className="h-[100vh] w-[100vw] flex items-center justify-center"
+      onKeyDown={handleKeyDown}
+      tabIndex="0"
+    >
       <div className="h-[80vh] bg-white border-2 border-white text-opacity-90 shadow-2xl w-[80vw] md:w-[90vw] lg:w-[70vw] xl:w-[60vw] rounded-3xl grid xl:grid-cols-2">
         <div className="flex flex-col gap-10 items-center justify-center">
           <div className="flex items-center justify-center flex-col">
@@ -131,7 +218,11 @@ const Auth = () => {
             </p>
           </div>
           <div className="flex items-center justify-center w-full">
-            <Tabs className="w-3/4" defaultValue="login">
+            <Tabs
+              className="w-3/4"
+              value={activeTab}
+              onValueChange={(val) => setActiveTab(val)}
+            >
               <TabsList className="flex items-center justify-center w-full">
                 <TabsTrigger
                   value="login"
@@ -219,12 +310,19 @@ const Auth = () => {
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <div className="relative">
+                  <PasswordRequirements
+                    password={password}
+                    confirmPassword={confirmPassword}
+                    visible={isPasswordFocused || isConfirmPasswordFocused}
+                  />
                   <Input
                     placeholder="Password"
                     type={showSignupPassword ? "text" : "password"}
                     className="rounded-full p-6 pr-12"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => setIsPasswordFocused(false)}
                   />
                   <button
                     type="button"
@@ -245,6 +343,8 @@ const Auth = () => {
                     className="rounded-full p-6 pr-12"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    onFocus={() => setIsConfirmPasswordFocused(true)}
+                    onBlur={() => setIsConfirmPasswordFocused(false)}
                   />
                   <button
                     type="button"
@@ -261,7 +361,7 @@ const Auth = () => {
                 <Button
                   className="rounded-full p-6 bg-black text-white"
                   onClick={handleSignup}
-                  disabled={isSigningUp}
+                  disabled={isSigningUp || !passwordMeetsRequirements}
                 >
                   {isSigningUp ? (
                     <>

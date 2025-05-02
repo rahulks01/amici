@@ -81,7 +81,7 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
     try {
       const response = await apiClient.post(
         RESEND_OTP,
-        { userId },
+        { userId: registrationId }, // adjust as needed
         { withCredentials: true }
       );
       if (response.status === 200) {
@@ -98,7 +98,15 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="bg-white text-black rounded-xl p-6 border border-gray-700 shadow-xl">
+      <DialogContent
+        className="bg-white text-black rounded-xl p-6 border border-gray-700 shadow-xl"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !isVerifying && otp.trim().length === 6) {
+            e.preventDefault();
+            handleVerify();
+          }
+        }}
+      >
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-2xl font-bold text-center">
             Verification Code
@@ -129,7 +137,7 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
           <Button
             onClick={handleVerify}
             className="w-full bg-indigo-500 hover:bg-indigo-700 text-white cursor-pointer py-2 h-12 rounded-lg transition-all duration-200"
-            disabled={isVerifying || otp.length !== 6}
+            disabled={isVerifying || otp.trim().length !== 6}
           >
             {isVerifying ? (
               <>
