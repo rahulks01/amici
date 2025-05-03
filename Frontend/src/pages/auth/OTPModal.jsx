@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,17 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
   const [isResending, setIsResending] = useState(false);
   const { setUserInfo } = useAppStore();
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
+  const [timer, setTimer] = useState(60);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setTimer(60);
+    const interval = setInterval(() => {
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [open]);
 
   const handleDigitChange = (index, value) => {
     if (value.length > 1) return;
@@ -81,13 +92,14 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
     try {
       const response = await apiClient.post(
         RESEND_OTP,
-        { userId: registrationId }, // adjust as needed
+        { registrationId },
         { withCredentials: true }
       );
       if (response.status === 200) {
         toast.success("OTP resent successfully.");
         setOtp("");
         setOtpDigits(["", "", "", "", "", ""]);
+        setTimer(60); 
       }
     } catch (error) {
       toast.error("Failed to resend OTP. Please try again.");
@@ -99,7 +111,7 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="bg-white text-black rounded-xl p-6 border border-gray-700 shadow-xl"
+        className="bg-white text-black rounded-xl p-3 sm:p-6 border border-gray-700 shadow-xl w-[95%] max-w-md mx-auto"
         onKeyDown={(e) => {
           if (e.key === "Enter" && !isVerifying && otp.trim().length === 6) {
             e.preventDefault();
@@ -108,16 +120,16 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
         }}
       >
         <DialogHeader className="space-y-2">
-          <DialogTitle className="text-2xl font-bold text-center">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-center">
             Verification Code
           </DialogTitle>
-          <DialogDescription className="text-gray-700 text-center">
+          <DialogDescription className="text-gray-700 text-center text-sm sm:text-base">
             Please enter the 6-digit code sent to your email to continue
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-6 space-y-6">
-          <div className="flex justify-center gap-2">
+        <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+          <div className="flex justify-center gap-1 sm:gap-2">
             {otpDigits.map((digit, index) => (
               <Input
                 key={index}
@@ -129,14 +141,14 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
                 value={digit}
                 onChange={(e) => handleDigitChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-12 text-center text-xl font-bold bg-white border-gray-600 focus:border-indigo-500 focus:ring-indigo-500"
+                className="w-9 h-10 sm:w-12 sm:h-12 text-center text-lg sm:text-xl font-bold bg-white border-gray-600 focus:border-indigo-500 focus:ring-indigo-500"
               />
             ))}
           </div>
 
           <Button
             onClick={handleVerify}
-            className="w-full bg-indigo-500 hover:bg-indigo-700 text-white cursor-pointer py-2 h-12 rounded-lg transition-all duration-200"
+            className="w-full bg-indigo-500 hover:bg-indigo-700 text-white cursor-pointer py-2 h-10 sm:h-12 rounded-lg transition-all duration-200"
             disabled={isVerifying || otp.trim().length !== 6}
           >
             {isVerifying ? (
@@ -149,21 +161,30 @@ const OTPModal = ({ open, setOpen, onSuccess, registrationId }) => {
             )}
           </Button>
 
-          <div className="text-center text-sm text-gray-700">
+          <div className="text-center text-xs text-gray-500 px-2 sm:px-0">
+            <p>Note: OTPs expire within two minutes.</p>
+            <p>If you do not receive the OTP, please check your spam folder.</p>
+          </div>
+
+          <div className="text-center text-xs sm:text-sm text-gray-700">
             Didn't receive the code?{" "}
             <button
               onClick={handleResend}
               className="text-indigo-500 hover:text-indigo-700 font-medium cursor-pointer"
-              disabled={isResending}
+              disabled={isResending || timer > 0}
             >
-              {isResending ? "Resending..." : "Resend"}
+              {isResending
+                ? "Resending..."
+                : timer > 0
+                ? `Resend (${timer}s)`
+                : "Resend"}
             </button>
           </div>
 
           <DialogClose asChild>
             <Button
               variant="ghost"
-              className="w-full border cursor-pointer hover:bg-black text-gray-700 hover:text-white"
+              className="w-full border cursor-pointer hover:bg-black text-gray-700 hover:text-white h-10 sm:h-12"
             >
               Cancel
             </Button>
