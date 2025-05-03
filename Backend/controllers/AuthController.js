@@ -35,6 +35,11 @@ export const signup = catchAsync(async (req, res, next) => {
     return res.status(400).send("Email and Password are required.");
   }
 
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(400).send("Email already exists.");
+  }
+
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const otpExpires = Date.now() + 2 * 60 * 1000;
 
@@ -123,11 +128,12 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   const auth = await compare(password, user.password);
+  console.log("bcrypt.compare result:", auth);
   if (!auth) {
     return res.status(400).send("Password is Incorrect.");
   }
 
-  res.cookie("jwt", createToken(email, user.id), {
+  res.cookie("jwt", createToken(user.email, user.id), {
     maxAge,
     secure: true,
     sameSite: "None",
