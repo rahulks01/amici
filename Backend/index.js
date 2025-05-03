@@ -13,7 +13,10 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
-const databaseURL = process.env.DATABASE_URL;
+const DB = process.env.DATABASE_URL.replace(
+  "<db_password>",
+  process.env.DATABASE_PASSWORD
+);
 
 app.use(
   cors({
@@ -41,7 +44,7 @@ const server = app.listen(port, () => {
 setupSocket(server);
 
 mongoose
-  .connect(databaseURL)
+  .connect(DB)
   .then(() => {
     console.log("DB Connection Successful");
   })
