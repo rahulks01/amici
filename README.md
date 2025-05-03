@@ -63,9 +63,9 @@ REDIS_PORT=<your-redis-port>
 
 EMAIL_HOST=<your-email-host>
 EMAIL_PORT=<your-email-port>
-EMAIL_USER=<your-email-user>
+EMAIL_USER=<your-sender-email-address>
 EMAIL_PASS=<your-email-password>
-EMAIL_FROM=<your-sender-email-address>
+EMAIL_FROM=<your-email-user>
 ```
 
 #### 📁 Frontend `.env`
