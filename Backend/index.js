@@ -9,6 +9,7 @@ import setupSocket from "./utils/socket.js";
 import messageRoutes from "./routes/MessagesRoutes.js";
 import channelRoutes from "./routes/ChannelRoutes.js";
 import { errorHandler } from "./utils/errorHandler.js";
+import keepBackendWarm from "./utils/keepBackendWarm.js";
 
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
@@ -52,6 +53,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/channel", channelRoutes);
+
+app.use("/api/keep-backend-warm", keepBackendWarm);
 
 const server = app.listen(port, () => {
   console.log(`Server is listening at http://localhost:${port}`);
