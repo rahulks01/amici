@@ -1,7 +1,6 @@
 <p align="left"> <img src="https://github.com/rahulks01/amici/blob/main/Frontend/public/logo-full.png" alt="Amici Logo" width="220" style="vertical-align: middle;"></p> 
-<br> <i>(amici translates to 'friend' in French)</i>
 
-**Amici** is a modern, real-time chat application built using the **MERN stack** (MongoDB, Express, React, Node.js), featuring a responsive and efficient frontend integrated with **Socket.IO**, **Zustand**, and **Tailwind CSS**. The backend leverages **Redis** for caching and a robust Pub/Sub model to enable efficient group messaging functionality.
+**Amici** is a modern, real-time chat application built using the **MERN stack** (MongoDB, Express, React, Node.js), featuring a responsive and efficient frontend integrated with **Socket.IO**, **Zustand**, and **Tailwind CSS**. The backend leverages **Redis** for caching and a robust Pub/Sub model to enable efficient group messaging functionality.<br> <i>(amici translates to 'friend' in French)</i>
 
 ---
 
