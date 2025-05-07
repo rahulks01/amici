@@ -1,9 +1,9 @@
 import { compare } from "bcrypt";
 import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
-import { renameSync, unlinkSync } from "fs";
 import { sendEmail } from "../utils/sendEmail.js";
 import redisClient from "../utils/redisClient.js";
+import cloudinary from "../utils/cloudinary.js";
 import { catchAsync } from "../utils/errorHandler.js";
 
 const maxAge = 15 * 24 * 60 * 60 * 1000;
@@ -128,7 +128,6 @@ export const login = catchAsync(async (req, res, next) => {
   }
 
   const auth = await compare(password, user.password);
-  console.log("bcrypt.compare result:", auth);
   if (!auth) {
     return res.status(400).send("Password is Incorrect.");
   }
@@ -206,13 +205,13 @@ export const addProfileImage = catchAsync(async (req, res, next) => {
     return res.status(400).send("File is required.");
   }
 
-  const date = Date.now();
-  let filename = "uploads/profiles/" + date + req.file.originalname;
-  renameSync(req.file.path, filename);
+  const result = await cloudinary.uploader.upload(req.file.path, {
+    folder: "amici/profiles",
+  });
 
   const updatedUser = await User.findByIdAndUpdate(
     req.userId,
-    { image: filename },
+    { image: result.secure_url },
     { new: true, runValidators: true }
   );
 
@@ -230,7 +229,11 @@ export const removeProfileImage = catchAsync(async (req, res, next) => {
   }
 
   if (user.image) {
-    unlinkSync(user.image);
+    const segments = user.image.split("/");
+    const fileName = segments.pop();
+    const publicId = "amici/profiles/" + fileName.split(".")[0];
+
+    await cloudinary.uploader.destroy(publicId);
   }
 
   user.image = null;

@@ -385,7 +385,11 @@ const ContactList = ({ contacts, isChannel = false }) => {
               <Avatar className="h-10 w-10 rounded-full overflow-hidden">
                 {contact.image ? (
                   <AvatarImage
-                    src={`${HOST}/${contact.image}`}
+                    src={
+                      contact.image.startsWith("http")
+                        ? contact.image
+                        : `${HOST}/${contact.image}`
+                    }
                     alt="profile"
                     className="object-cover w-full h-full bg-black"
                   />
@@ -497,7 +501,11 @@ const ContactList = ({ contacts, isChannel = false }) => {
                     <Avatar className="h-8 w-8">
                       {channelAdmin.image ? (
                         <AvatarImage
-                          src={`${HOST}/${channelAdmin.image}`}
+                          src={
+                            channelAdmin.image.startsWith("http")
+                              ? channelAdmin.image
+                              : `${HOST}/${channelAdmin.image}`
+                          }
                           alt={channelAdmin.firstName || channelAdmin.email}
                         />
                       ) : (
@@ -535,7 +543,11 @@ const ContactList = ({ contacts, isChannel = false }) => {
                     <Avatar className="h-8 w-8">
                       {member.image ? (
                         <AvatarImage
-                          src={`${HOST}/${member.image}`}
+                          src={
+                            member.image.startsWith("http")
+                              ? member.image
+                              : `${HOST}/${member.image}`
+                          }
                           alt={member.firstName || member.email}
                         />
                       ) : (
@@ -671,7 +683,11 @@ const ContactList = ({ contacts, isChannel = false }) => {
                       <Avatar className="h-8 w-8">
                         {user.image ? (
                           <AvatarImage
-                            src={`${HOST}/${user.image}`}
+                            src={
+                              user.image.startsWith("http")
+                                ? user.image
+                                : `${HOST}/${user.image}`
+                            }
                             alt={user.firstName || user.email}
                           />
                         ) : (

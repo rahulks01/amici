@@ -1,5 +1,6 @@
 import Message from "../models/MessagesModel.js";
-import { mkdirSync, renameSync } from "fs";
+import cloudinary from "../utils/cloudinary.js";
+import path from "path";
 import { catchAsync } from "../utils/errorHandler.js";
 
 export const getMessages = catchAsync(async (req, res, next) => {
@@ -22,14 +23,31 @@ export const getMessages = catchAsync(async (req, res, next) => {
 
 export const uploadFile = catchAsync(async (req, res, next) => {
   if (!req.file) {
-    return res.status(400).send("File is required");
+    return res.status(400).send("File is required.");
   }
-  const date = Date.now();
-  let fileDir = `uploads/files/${date}`;
-  let fileName = `${fileDir}/${req.file.originalname}`;
+  
+  const originalName = path.parse(req.file.originalname).name;
+  
+  const result = await cloudinary.uploader.upload(req.file.path, {
+    folder: "amici/files",
+    use_filename: true,
+    unique_filename: false,  
+    public_id: originalName,
+  });
 
-  mkdirSync(fileDir, { recursive: true });
-  renameSync(req.file.path, fileName);
+  if (!result || !result.secure_url) {
+    return res.status(500).send("File upload failed.");
+  }
 
-  return res.status(200).json({ filePath: fileName });
+  const newMessage = await Message.create({
+    sender: req.userId,
+    messageType: "file",
+    fileUrl: result.secure_url,
+  });
+
+  return res.status(200).json({
+    message: "File uploaded successfully.",
+    fileUrl: newMessage.fileUrl,
+    messageId: newMessage._id,
+  });
 });

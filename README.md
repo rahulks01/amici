@@ -66,6 +66,10 @@ EMAIL_PORT=<your-email-port>
 EMAIL_USER=<your-sender-email-address>
 EMAIL_PASS=<your-email-password>
 EMAIL_FROM=<your-email-user>
+
+CLOUDINARY_CLOUD_NAME=<your-cloudinary-cloud-name>
+CLOUDINARY_API_KEY=<your-cloudinary-api-key>
+CLOUDINARY_API_SECRET=<your-cloudinary-api-secret>
 ```
 
 #### 📁 Frontend `.env`

@@ -1,3 +1,5 @@
+"use client";
+
 import { apiClient } from "@/lib/api-client";
 import { useAppStore } from "@/store";
 import {
@@ -48,7 +50,9 @@ const MessageContainer = () => {
       try {
         const response = await apiClient.get(
           `${GET_CHANNEL_MESSAGES}/${selectedChatData._id}`,
-          { withCredentials: true }
+          {
+            withCredentials: true,
+          }
         );
 
         if (response.data.messages) {
@@ -105,13 +109,16 @@ const MessageContainer = () => {
   const downloadFile = async (url) => {
     setIsDownloading(true);
     setFileDownloadProgress(0);
-    const response = await apiClient.get(`${HOST}/${url}`, {
+    const requestUrl = url.startsWith("http") ? url : `${HOST}/${url}`;
+
+    const response = await apiClient.get(requestUrl, {
       responseType: "blob",
       onDownloadProgress: (progressEvent) => {
         const { loaded, total } = progressEvent;
         const percentCompleted = Math.round((loaded * 100) / total);
         setFileDownloadProgress(percentCompleted);
       },
+      withCredentials: false,
     });
 
     const urlBlob = window.URL.createObjectURL(new Blob([response.data]));
@@ -149,7 +156,7 @@ const MessageContainer = () => {
             message.sender !== selectedChatData._id
               ? "bg-indigo-500 text-white border-white/50"
               : "bg-[#2a2b33]/5 text-white/80 border-[#fff]/50"
-          } border inline-block p-2 rounded-md my-1 max-w-[50%] break-words`}
+          } border inline-block p-2 rounded-md my-1 max-w-full md:max-w-[80%] lg:max-w-[60%] xl:max-w-[50%] break-words`}
         >
           {checkIfImage(message.fileUrl) ? (
             <div
@@ -160,19 +167,25 @@ const MessageContainer = () => {
               }}
             >
               <img
-                src={`${HOST}/${message.fileUrl}`}
-                height={300}
-                width={300}
+                src={
+                  message.fileUrl.startsWith("http")
+                    ? message.fileUrl
+                    : `${HOST}/${message.fileUrl}`
+                }
+                className="max-w-full h-auto object-contain"
+                alt="uploaded"
               />
             </div>
           ) : (
-            <div className="flex items-center justify-center gap-4">
-              <span className="text-white/80 text-3xl bg-black/20 rounded-full p-3">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 p-2">
+              <span className="text-white/80 text-3xl bg-black/20 rounded-full p-3 shrink-0">
                 <MdFolderZip />
               </span>
-              <span>{message.fileUrl.split("/").pop()}</span>
+              <span className="text-sm sm:text-base truncate max-w-[150px] sm:max-w-[200px] md:max-w-[250px]">
+                {message.fileUrl.split("/").pop()}
+              </span>
               <span
-                className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300"
+                className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300 shrink-0 mt-2 sm:mt-0"
                 onClick={() => downloadFile(message.fileUrl)}
               >
                 <IoMdArrowRoundDown />
@@ -213,7 +226,9 @@ const MessageContainer = () => {
               message.sender._id === userInfo.id
                 ? "bg-indigo-500 text-white border-white/50"
                 : "bg-[#2a2b33]/5 text-white/80 border-white/50"
-            } border inline-block p-2 rounded-md my-1 max-w-[50%] break-words`}
+            } border inline-block p-2 rounded-md my-1 max-w-full md:max-w-[80%] lg:max-w-[60%] xl:max-w-[50%] break-words ${
+              message.sender._id !== userInfo.id ? "ml-9" : ""
+            }`}
           >
             {checkIfImage(message.fileUrl) ? (
               <div
@@ -225,18 +240,20 @@ const MessageContainer = () => {
               >
                 <img
                   src={`${HOST}/${message.fileUrl}`}
-                  height={300}
-                  width={300}
+                  className="max-w-full h-auto object-contain"
+                  alt="uploaded"
                 />
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-4">
-                <span className="text-white/80 text-3xl bg-black/20 rounded-full p-3">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 p-2">
+                <span className="text-white/80 text-3xl bg-black/20 rounded-full p-3 shrink-0">
                   <MdFolderZip />
                 </span>
-                <span>{message.fileUrl.split("/").pop()}</span>
+                <span className="text-sm sm:text-base truncate max-w-[150px] sm:max-w-[200px] md:max-w-[250px]">
+                  {message.fileUrl.split("/").pop()}
+                </span>
                 <span
-                  className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300"
+                  className="bg-black/20 p-3 text-2xl rounded-full hover:bg-black/50 cursor-pointer transition-all duration-300 shrink-0 mt-2 sm:mt-0"
                   onClick={() => downloadFile(message.fileUrl)}
                 >
                   <IoMdArrowRoundDown />
@@ -286,10 +303,11 @@ const MessageContainer = () => {
       <div ref={scrollRef}></div>
       {showImage && (
         <div className="fixed z-[1000] top-0 left-0 h-[100vh] w-[100vw] flex items-center justify-center backdrop-blur-lg flex-col">
-          <div>
+          <div className="w-[90vw] md:w-[80vw] lg:w-[70vw] max-h-[80vh] overflow-auto">
             <img
               src={`${HOST}/${imageURL}`}
-              className="h-[80vh] w-full bg-cover"
+              className="w-full h-auto object-contain"
+              alt="Full size"
             />
           </div>
           <div className="flex gap-5 fixed top-0 mt-3">

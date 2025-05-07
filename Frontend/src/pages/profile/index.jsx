@@ -33,7 +33,11 @@ const Profile = () => {
       setSelectedColor(userInfo.color);
     }
     if (userInfo.image) {
-      setImage(`${HOST}/${userInfo.image}`);
+      setImage(
+        userInfo.image.startsWith("http")
+          ? userInfo.image
+          : `${HOST}/${userInfo.image}`
+      );
     }
   }, [userInfo]);
 
@@ -130,7 +134,9 @@ const Profile = () => {
           >
             <IoArrowBack className="text-2xl text-white/90" />
           </button>
-          <h1 className="text-2xl font-semibold text-white/90">Profile Settings</h1>
+          <h1 className="text-2xl font-semibold text-white/90">
+            Profile Settings
+          </h1>
         </div>
 
         <div className="grid md:grid-cols-[300px_1fr] gap-8">

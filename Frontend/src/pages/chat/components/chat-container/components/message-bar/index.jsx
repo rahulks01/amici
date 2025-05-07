@@ -104,7 +104,7 @@ const MessageBar = () => {
               content: undefined,
               recipient: selectedChatData._id,
               messageType: "file",
-              fileUrl: response.data.filePath,
+              fileUrl: response.data.fileUrl,
             });
           } else if (selectedChatType === "channel") {
             if (!socket || !socket.current) {
@@ -115,14 +115,12 @@ const MessageBar = () => {
               sender: userInfo.id,
               content: undefined,
               messageType: "file",
-              fileUrl: response.data.filePath,
+              fileUrl: response.data.fileUrl,
               channelId: selectedChatData._id,
             });
           }
         }
       }
-
-      console.log({ file });
     } catch (err) {
       setIsUploading(false);
       console.log({ err });
